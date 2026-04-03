@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Taiwan Monthly Overtime Estimator</title>
+
+  <!--
+    =============================
+    🟦 PART 1: STYLE / APPEARANCE
+    =============================
+    這整大段 <style> 幾乎都是外觀：顏色、按鈕、間距、卡片、字體。
+    你現在先不用硬背，只要知道：
+    - 想改顏色、大小、間距 → 來這裡
+    - 想改計算公式 → 不在這裡
+  -->
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --muted: #94a3b8;
+      --text: #e5e7eb;
+      --accent: #22c55e;
+      --accent2: #38bdf8;
+      --border: #1f2937;
+      --danger: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #020617 0%, #0f172a 100%);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    .container { width: min(1100px, 92%); margin: 0 auto; }
+    .hero { padding: 56px 0 28px; }
+    .badge {
+      display: inline-block;
+      background: rgba(56, 189, 248, 0.15);
+      color: #bae6fd;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 14px;
+      margin-bottom: 18px;
+    }
+    h1 {
+      font-size: clamp(32px, 5vw, 56px);
+      line-height: 1.08;
+      margin: 0 0 16px;
+    }
+    .subtitle {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 760px;
+      margin-bottom: 24px;
+    }
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .btn {
+      display: inline-block;
+      text-decoration: none;
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #052e16;
+    }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border-color: #334155;
+    }
+    .notice {
+      color: #fde68a;
+      font-size: 14px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 22px;
+      padding: 18px 0 28px;
+    }
+    @media (max-width: 860px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: rgba(17, 24, 39, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 22px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+    }
+    h2 {
+      margin-top: 0;
+      font-size: 24px;
+    }
+    .muted { color: var(--muted); }
+    .field { margin-bottom: 14px; }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    input, textarea {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid #374151;
+      background: #0b1220;
+      color: var(--text);
+      padding: 12px 14px;
+      font-size: 15px;
+    }
+    textarea { min-height: 110px; resize: vertical; }
+    .result {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 16px;
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+    }
+    .result strong {
+      display: block;
+      font-size: 28px;
+      margin-top: 8px;
+    }
+    .list {
+      padding-left: 18px;
+      color: var(--muted);
+    }
+    .faq-item {
+      border-top: 1px solid #1f2937;
+      padding: 14px 0;
+    }
+    .faq-item:first-child { border-top: 0; }
+    .small {
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .warn {
+      color: #fcd34d;
+      font-weight: 700;
+    }
+    footer {
+      padding: 24px 0 44px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .success {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(56, 189, 248, 0.08);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: #bae6fd;
+    }
+  </style>
+</head>
+<body>
+  <!--
+    =============================
+    🟨 PART 2: HERO / 上方大標題區
+    =============================
+    這裡是首頁上方看到的：
+    - badge
+    - 主標題
+    - 副標
+    - 按鈕
+    - 黃色提醒字
+
+    你想改文案、按鈕連結、標題，主要就是改這一區。
+  -->
+  <section class="hero">
+    <div class="container">
+      <div class="badge">English MVP · Monthly estimate version</div>
+      <h1>Taiwan Monthly Overtime Pay Estimator</h1>
+      <p class="subtitle">
+        A simple English tool for workers in Taiwan to estimate monthly overtime pay quickly.
+        This version treats all extra hours as regular workday overtime for easy checking.
+      </p>
+      <div class="actions">
+        <a class="btn btn-primary" href="#calculator">Calculate Now</a>
+        <a class="btn btn-secondary" href="https://t.me/YOUR_BOT_USERNAME" target="_blank" rel="noopener">Ask on Telegram</a>
+      </div>
+      <div class="notice">Estimate only. Not legal advice. Actual pay may differ for rest day work, Article 84-1 jobs, shift changes, or company payroll setup.</div>
+    </div>
+  </section>
+
+  <main class="container grid">
+    <!--
+      =============================
+      🟩 PART 3: 你最常會改的區塊（表單）
+      =============================
+      這一區最重要，因為這裡是使用者輸入資料的地方。
+
+      你未來最常改的通常是：
+      - label 文字
+      - input 欄位 id
+      - placeholder 提示字
+
+      公式本身不在這裡，公式在最下面的 <script>。
+    -->
+    <section class="card" id="calculator">
+      <h2>Monthly Overtime Calculator</h2>
+      <p class="muted">This MVP uses a simplified monthly estimate and treats all extra hours as regular workday overtime.</p>
+
+      <!-- 🔹 欄位 1：月薪 -->
+      <div class="field">
+        <label for="monthlySalary">Monthly Salary (TWD)</label>
+        <input id="monthlySalary" type="number" min="0" step="1" placeholder="Enter monthly salary" />
+      </div>
+
+      <!-- 🔹 欄位 2：第一、第二小時加班總時數 -->
+      <div class="field">
+        <label for="firstSecondHours">1st–2nd Hour Overtime This Month</label>
+        <input id="firstSecondHours" type="number" min="0" step="0.5" placeholder="e.g. 10 or 20" />
+      </div>
+
+      <!-- 🔹 欄位 3：第三、第四小時加班總時數 -->
+      <div class="field">
+        <label for="thirdFourthHours">3rd–4th Hour Overtime This Month</label>
+        <input id="thirdFourthHours" type="number" min="0" step="0.5" placeholder="e.g. 5 or 10" />
+      </div>
+
+      <!--
+        🔹 這裡是按鈕
+        看到 onclick="calculateOvertime()" 就代表：
+        按下按鈕時，會去執行下面 script 裡的 calculateOvertime() 函式。
+      -->
+      <div class="actions">
+        <button class="btn btn-primary" onclick="calculateOvertime()">Calculate Estimate</button>
+        <button class="btn btn-secondary" onclick="resetForm()">Reset</button>
+      </div>
+
+      <!--
+        🔹 這裡是結果顯示區
+        resultValue 會顯示最後金額
+        resultBreakdown 會顯示說明文字
+      -->
+      <div class="result" id="resultBox">
+        <div class="muted">Estimated monthly overtime pay</div>
+        <strong id="resultValue">TWD 0</strong>
+        <div class="small" id="resultBreakdown">Fill in your salary and monthly extra hours to see the result.</div>
+      </div>
+    </section>
+
+    <!--
+      =============================
+      🟦 PART 4: How it works 側邊說明區
+      =============================
+      這裡只是顯示給使用者看的說明文字。
+      你不想顯示公式給用戶看，就改這一區內容。
+      它不會影響計算結果。
+    -->
+    <aside class="card">
+      <h2>How it works</h2>
+      <ul class="list">
+        <li>Enter your monthly salary.</li>
+        <li>Enter the total overtime hours for 1st–2nd hours.</li>
+        <li>Enter the total overtime hours for 3rd–4th hours.</li>
+        <li>The tool adds both parts together automatically.</li>
+        <li>This tool is for general reference only.</li>
+      </ul>
+      <p class="small">This is intentionally simplified for a faster worker-friendly first version.</p>
+    </aside>
+  </main>
+
+  <!--
+    =============================
+    ⚪ PART 5: FAQ 區塊
+    =============================
+    這區主要是信任感、風險控管、教育用。
+    不是計算核心。
+  -->
+  <section class="container" style="padding-bottom: 22px;">
+    <div class="card">
+      <h2>FAQ</h2>
+      <div class="faq-item">
+        <strong>Is this official?</strong>
+        <div class="muted">No. This is an estimate tool only.</div>
+      </div>
+      <div class="faq-item">
+        <strong>Does this apply to every job?</strong>
+        <div class="muted">Not always. Rest day work, shift changes, and Article 84-1 jobs may use a different method.</div>
+      </div>
+      <div class="faq-item">
+        <strong>Why is there no rest day option?</strong>
+        <div class="muted">To keep the first version simple, this MVP assumes all extra hours are regular workday overtime and splits them into two overtime buckets.</div>
+      </div>
+      <div class="faq-item">
+        <strong>Can I ask a real person?</strong>
+        <div class="muted">Yes. Use the Telegram button or leave a question below.</div>
+      </div>
+      <div class="faq-item">
+        <strong>Should I upload my salary slip or ARC?</strong>
+        <div class="muted"><span class="warn">No.</span> Do not send passport, ARC, bank account, or salary slip photos in this MVP version.</div>
+      </div>
+    </div>
+  </section>
+
+  <!--
+    =============================
+    ⚪ PART 6: 留言表單區
+    =============================
+    這區是之後可接 Google Forms / Telegram / 後端。
+    現在只是視覺 MVP。
+    不影響加班費公式。
+  -->
+  <section class="container" style="padding-bottom: 22px;">
+    <div class="card">
+      <h2>Leave a Question</h2>
+      <p class="muted">This form is ready for Google Forms, Formspree, or your own backend later. For now, it can also be used as a visual MVP.</p>
+      <form id="contactForm">
+        <div class="field">
+          <label for="name">Name</label>
+          <input id="name" type="text" placeholder="Your name" />
+        </div>
+        <div class="field">
+          <label for="nationality">Nationality</label>
+          <input id="nationality" type="text" placeholder="e.g. Filipino / Indonesian / Vietnamese" />
+        </div>
+        <div class="field">
+          <label for="question">Question</label>
+          <textarea id="question" placeholder="Write your question in English"></textarea>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+        <div class="success" id="formSuccess">Demo form submitted. Next step: connect this to Google Forms, Formspree, or Telegram automation.</div>
+      </form>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div>Taiwan Monthly Overtime Pay Estimator · MVP Demo</div>
+      <div>This page provides a general estimate only and does not replace payroll calculation, legal advice, or government guidance.</div>
+    </div>
+  </footer>
+
+  <!--
+    =====================================================
+    🟥 PART 7: 計算核心（最重要）
+    =====================================================
+    你真正需要懂的，主要就是這一段 <script>
+
+    你可以把它理解成：
+    1. 先抓使用者輸入值
+    2. 檢查有沒有空值
+    3. 算時薪
+    4. 算第一欄加班費
+    5. 算第二欄加班費
+    6. 相加
+    7. 顯示到畫面上
+
+    以後你如果要改倍率、改欄位、改計算方式，最常動這裡。
+  -->
+  <script>
+    // 🔹 小工具：把數字四捨五入到小數點後兩位
+    function round2(num) {
+      return Math.round((num + Number.EPSILON) * 100) / 100;
+    }
+
+    // 🔴 主計算函式：按下 Calculate Estimate 時會跑這裡
+    function calculateOvertime() {
+      // 1. 抓使用者輸入值
+      const monthlySalary = Number(document.getElementById('monthlySalary').value || 0);
+      const firstSecondHours = Number(document.getElementById('firstSecondHours').value || 0);
+      const thirdFourthHours = Number(document.getElementById('thirdFourthHours').value || 0);
+
+      // 2. 抓結果顯示區元件
+      const resultValue = document.getElementById('resultValue');
+      const resultBreakdown = document.getElementById('resultBreakdown');
+
+      // 3. 防呆：如果月薪沒填，或兩個加班欄位都沒填
+      if (!monthlySalary || (firstSecondHours === 0 && thirdFourthHours === 0)) {
+        resultValue.textContent = 'TWD 0';
+        resultBreakdown.textContent = 'Please enter monthly salary and at least one overtime hour value.';
+        return;
+      }
+
+      // 4. 算時薪
+      const hourly = monthlySalary / 30 / 8;
+
+      // 5. 算第一欄加班費（第 1~2 小時）
+      const firstSecondPay = firstSecondHours * hourly * (4 / 3);
+
+      // 6. 算第二欄加班費（第 3~4 小時）
+      const thirdFourthPay = thirdFourthHours * hourly * (5 / 3);
+
+      // 7. 加總
+      const total = firstSecondPay + thirdFourthPay;
+
+      // 8. 把結果顯示到畫面上
+      resultValue.textContent = `TWD ${round2(total).toLocaleString()}`;
+      resultBreakdown.textContent = `Hourly wage estimate: TWD ${round2(hourly)}. 1st–2nd hour overtime pay: TWD ${round2(firstSecondPay).toLocaleString()}. 3rd–4th hour overtime pay: TWD ${round2(thirdFourthPay).toLocaleString()}. Total added automatically.`;
+    }
+
+    // 🟡 Reset 按鈕會跑這裡：把欄位清空
+    function resetForm() {
+      document.getElementById('monthlySalary').value = '';
+      document.getElementById('firstSecondHours').value = '';
+      document.getElementById('thirdFourthHours').value = '';
+      document.getElementById('resultValue').textContent = 'TWD 0';
+      document.getElementById('resultBreakdown').textContent = 'Fill in your salary and monthly extra hours to see the result.';
+    }
+
+    // 🟡 表單送出時，先不要真的送資料，只顯示成功訊息
+    document.getElementById('contactForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      document.getElementById('formSuccess').style.display = 'block';
+    });
+  </script>
+</body>
+</html>
